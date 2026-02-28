@@ -46,17 +46,16 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
             }}
           />
 
-          {/* Modal card */}
+          {/* Modal card — use inset + margin:auto for true centering (avoids framer-motion transform conflicts) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
             style={{
               position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
+              inset: "40px",
+              margin: "auto",
               background: "#1A1820",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "16px",
@@ -64,6 +63,7 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
               maxWidth: "480px",
               width: "calc(100% - 40px)",
               maxHeight: "calc(100vh - 80px)",
+              height: "fit-content",
               overflowY: "auto",
               boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
               zIndex: 2001,
