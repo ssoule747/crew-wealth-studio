@@ -70,8 +70,9 @@ export default function Home() {
   const typewriterResolveRef = useRef<(() => void) | null>(null);
 
   // Tour auto-advance logic — detects if user has jumped ahead
+  // Skip when performStepAction is already driving the tour
   useEffect(() => {
-    if (!tour.isTourActive) return;
+    if (!tour.isTourActive || tour.isPerformingAction || tour.isAutoPlaying) return;
 
     // Map app states to minimum tour steps
     const stateToMinStep: Record<string, number> = {
