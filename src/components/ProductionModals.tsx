@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ========== Base Modal ==========
@@ -22,7 +23,9 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -108,7 +111,8 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

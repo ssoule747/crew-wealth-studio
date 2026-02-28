@@ -48,6 +48,8 @@ const TOUR_COMPLETED_KEY = "henry-tour-completed";
 const TOTAL_STEPS = 5;
 const STEP_2_TEXT =
   "Update all the financial figures to reflect 2025 actuals and refresh the market commentary for the new year";
+const STEP_4_TEXT =
+  "Make the market commentary more conservative and cautious in tone";
 
 // ---------------------------------------------------------------------------
 // Helpers (module-private)
@@ -231,10 +233,21 @@ export default function TourProvider({ children }: { children: ReactNode }) {
           break;
         }
 
-        // Step 4 — Review & Accept
+        // Step 4 — Type follow-up, wait for response, then accept
         case 4: {
           const state = actions.getAppState();
           if (state === "review") {
+            // Type the follow-up suggestion into the chat
+            await actions.fillInput(STEP_4_TEXT);
+            await delay(400);
+            actions.sendMessage(STEP_4_TEXT);
+            // Wait for processing to finish and return to review
+            await waitForCondition(
+              () => actions.getAppState() === "review",
+              8000,
+            );
+            await delay(800);
+            // Now accept the file
             actions.acceptFile();
             await waitForCondition(
               () => actions.getAppState() === "accepted",

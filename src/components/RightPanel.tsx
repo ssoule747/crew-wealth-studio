@@ -530,6 +530,7 @@ function ApprovedFileCard({
           </button>
         </div>
       </motion.div>
+      {/* Modals rendered via portal-like fixed positioning — already fixed/z-indexed in ProductionModals */}
       <DownloadModal isOpen={showDownloadModal} onClose={() => setShowDownloadModal(false)} />
       <KeynoteModal isOpen={showKeynoteModal} onClose={() => setShowKeynoteModal(false)} />
     </motion.div>
