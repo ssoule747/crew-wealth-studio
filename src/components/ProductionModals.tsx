@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 // ========== Base Modal ==========
 
@@ -13,6 +14,8 @@ interface ModalProps {
 }
 
 function Modal({ isOpen, onClose, children }: ModalProps) {
+  const isMobile = useIsMobile();
+
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
@@ -54,19 +57,20 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
             style={{
               position: "fixed",
-              inset: "40px",
+              inset: isMobile ? "8px" : "40px",
               margin: "auto",
               background: "#1A1820",
               border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "16px",
-              padding: "32px",
-              maxWidth: "480px",
-              width: "calc(100% - 40px)",
-              maxHeight: "calc(100vh - 80px)",
+              borderRadius: isMobile ? "12px" : "16px",
+              padding: isMobile ? "20px" : "32px",
+              maxWidth: isMobile ? "none" : "480px",
+              width: isMobile ? "auto" : "calc(100% - 40px)",
+              maxHeight: isMobile ? "calc(100vh - 16px)" : "calc(100vh - 80px)",
               height: "fit-content",
               overflowY: "auto",
               boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
               zIndex: 2001,
+              paddingBottom: isMobile ? "calc(20px + env(safe-area-inset-bottom, 0px))" : "32px",
             }}
           >
             {/* Close button */}
@@ -75,14 +79,19 @@ function Modal({ isOpen, onClose, children }: ModalProps) {
               onClick={onClose}
               style={{
                 position: "absolute",
-                top: "16px",
-                right: "16px",
+                top: isMobile ? "12px" : "16px",
+                right: isMobile ? "12px" : "16px",
                 background: "none",
                 border: "none",
                 color: "rgba(255,255,255,0.3)",
-                fontSize: "20px",
+                fontSize: isMobile ? "24px" : "20px",
                 cursor: "pointer",
-                padding: "4px",
+                padding: isMobile ? "10px" : "4px",
+                minHeight: "44px",
+                minWidth: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 lineHeight: 1,
               }}
             >
@@ -233,6 +242,7 @@ function GotItButton({ onClick }: { onClick: () => void }) {
         fontSize: "13px",
         fontWeight: 600,
         cursor: "pointer",
+        minHeight: "48px",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = "0 4px 20px rgba(201,169,110,0.25)";

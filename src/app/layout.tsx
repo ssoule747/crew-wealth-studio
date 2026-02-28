@@ -14,6 +14,13 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export const metadata: Metadata = {
   title: "Henry — AI Presentation Assistant by Crew Wealth",
   description:

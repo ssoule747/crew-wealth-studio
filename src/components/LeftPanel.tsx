@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ChatInterface from "./ChatInterface";
 import type { ChatMessage } from "@/app/page";
 import type { DemoFile, AppState } from "@/lib/mockData";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface LeftPanelProps {
   appState: AppState;
@@ -30,6 +31,7 @@ export default function LeftPanel({
   tourFillText,
   onTourFillConsumed,
 }: LeftPanelProps) {
+  const isMobile = useIsMobile();
   const hasFiles = demoFiles.length > 0;
 
   return (
@@ -37,7 +39,7 @@ export default function LeftPanel({
       {/* File Workspace Bar — compact top section */}
       <div
         style={{
-          padding: "16px 24px",
+          padding: isMobile ? "12px 16px" : "16px 24px",
           borderBottom: "1px solid rgba(255,255,255,0.04)",
           minHeight: "56px",
           maxHeight: "80px",
@@ -114,7 +116,7 @@ export default function LeftPanel({
                   }}
                 >
                   <span style={{ color: file.color, fontSize: "10px" }}>{file.icon}</span>
-                  <span style={{ maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ maxWidth: isMobile ? "100px" : "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {file.name}
                   </span>
                 </motion.div>

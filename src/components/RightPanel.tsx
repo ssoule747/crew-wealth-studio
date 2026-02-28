@@ -6,6 +6,7 @@ import type { AppState, SlidePreview } from "@/lib/mockData";
 import { SLIDE_TYPE_COLORS } from "@/lib/mockData";
 import { DownloadModal, KeynoteModal } from "./ProductionModals";
 import Tooltip from "./Tooltip";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface ApprovedFile {
   filename: string;
@@ -20,12 +21,13 @@ interface RightPanelProps {
 }
 
 export default function RightPanel({ appState, approvedFile }: RightPanelProps) {
+  const isMobile = useIsMobile();
   const prefersReducedMotion =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" style={{ padding: "24px" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ padding: isMobile ? "16px" : "24px" }}>
       {/* Header */}
       <div className="flex items-center gap-2" style={{ marginBottom: "16px" }}>
         <span
@@ -274,6 +276,7 @@ function ApprovedFileCard({
   file: ApprovedFile;
   reducedMotion: boolean;
 }) {
+  const isMobile = useIsMobile();
   const [expandedSlideId, setExpandedSlideId] = useState<number | null>(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showKeynoteModal, setShowKeynoteModal] = useState(false);
@@ -329,7 +332,7 @@ function ApprovedFileCard({
         <div
           className="flex items-center gap-3 shrink-0"
           style={{
-            padding: "16px 20px",
+            padding: isMobile ? "12px 16px" : "16px 20px",
             borderBottom: "1px solid rgba(255,255,255,0.04)",
             background: "rgba(201,169,110,0.03)",
           }}
@@ -462,7 +465,7 @@ function ApprovedFileCard({
         <div
           className="shrink-0 flex flex-col gap-2"
           style={{
-            padding: "16px 20px",
+            padding: isMobile ? "12px 16px" : "16px 20px",
             borderTop: "1px solid rgba(255,255,255,0.04)",
           }}
         >
@@ -483,6 +486,7 @@ function ApprovedFileCard({
               fontSize: "13px",
               fontWeight: 600,
               cursor: "pointer",
+              minHeight: "48px",
             }}
           >
             {/* Shimmer sweep */}
@@ -524,6 +528,7 @@ function ApprovedFileCard({
               fontSize: "12px",
               fontWeight: 500,
               cursor: "pointer",
+              minHeight: "44px",
             }}
           >
             Open in Keynote

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { ChatMessage } from "@/app/page";
 import type { AppState } from "@/lib/mockData";
 import { PROCESSING_STEPS, SLIDE_TYPE_COLORS } from "@/lib/mockData";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface ChatInterfaceProps {
   appState: AppState;
@@ -32,6 +33,7 @@ export default function ChatInterface({
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function ChatInterface({
       {/* Messages area */}
       <div
         className="flex-1 overflow-y-auto min-h-0"
-        style={{ padding: "20px 24px" }}
+        style={{ padding: isMobile ? "16px 16px" : "20px 24px" }}
       >
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
@@ -155,7 +157,7 @@ export default function ChatInterface({
       </div>
 
       {/* Input bar */}
-      <div style={{ padding: "12px 24px 20px" }}>
+      <div style={{ padding: isMobile ? "8px 12px calc(12px + env(safe-area-inset-bottom, 0px))" : "12px 24px 20px" }}>
         <div
           className="flex items-center gap-2"
           style={{
@@ -181,7 +183,7 @@ export default function ChatInterface({
               border: "none",
               outline: "none",
               color: "rgba(255,255,255,0.8)",
-              fontSize: "13px",
+              fontSize: isMobile ? "16px" : "13px",
               caretColor: "#C9A96E",
             }}
           />
@@ -190,7 +192,8 @@ export default function ChatInterface({
             onClick={handleSubmit}
             disabled={isDisabled || !input.trim()}
             style={{
-              padding: "8px 16px",
+              padding: isMobile ? "10px 20px" : "8px 16px",
+              minHeight: "44px",
               borderRadius: "8px",
               border: "none",
               background: !isDisabled && input.trim()
@@ -344,7 +347,7 @@ function FilePreviewCard({
       >
         <div className="flex items-center gap-2" style={{ fontSize: "12px", color: "rgba(139,201,110,0.7)" }}>
           <span>✓</span>
-          <span>Accepted — see right panel</span>
+          <span>✓ File accepted</span>
         </div>
       </motion.div>
     );
@@ -427,7 +430,7 @@ function FilePreviewCard({
 
       {/* Action buttons — updated Accept handler */}
       {showActions && (
-        <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row gap-2">
           <button
             type="button"
             onClick={handleAccept}

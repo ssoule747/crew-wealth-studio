@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTour } from "./TourProvider";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const TOTAL_STEPS = 5;
 
@@ -82,6 +83,7 @@ export default function TourCard({ onFillInput }: TourCardProps) {
     startAutoPlay,
     pauseAutoPlay,
   } = useTour();
+  const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
 
   const stepData = TOUR_STEPS.find((s) => s.step === currentStep);
@@ -115,6 +117,16 @@ export default function TourCard({ onFillInput }: TourCardProps) {
   if (!isTourActive || !stepData) return null;
 
   const getPositionStyle = (): React.CSSProperties => {
+    if (isMobile) {
+      return {
+        position: "fixed",
+        bottom: "12px",
+        left: "12px",
+        right: "12px",
+        top: "auto",
+        transform: "none",
+      };
+    }
     switch (stepData.position) {
       case "center":
         return { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
@@ -132,6 +144,7 @@ export default function TourCard({ onFillInput }: TourCardProps) {
   };
 
   const renderArrow = () => {
+    if (isMobile) return null;
     if (!stepData.arrowDirection) return null;
     const styles: Record<string, React.CSSProperties> = {
       up: { position: "absolute", top: "-8px", left: "40px", width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderBottom: "8px solid rgba(201,169,110,0.25)" },
@@ -173,12 +186,12 @@ export default function TourCard({ onFillInput }: TourCardProps) {
           style={{
             ...getPositionStyle(),
             zIndex: 1001,
-            maxWidth: "340px",
-            width: "340px",
+            maxWidth: isMobile ? "none" : "340px",
+            width: isMobile ? "auto" : "340px",
             background: "#1E1C24",
             border: "1px solid rgba(201,169,110,0.25)",
             borderRadius: "14px",
-            padding: "20px",
+            padding: isMobile ? "20px 20px calc(20px + env(safe-area-inset-bottom, 0px))" : "20px",
             boxShadow: "0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,169,110,0.1)",
             pointerEvents: "auto",
           }}
@@ -276,7 +289,7 @@ export default function TourCard({ onFillInput }: TourCardProps) {
             ) : (
               <div className="flex items-center gap-3">
                 {stepData.showSkip && (
-                  <button type="button" onClick={skipTour} style={{ background: "none", border: "none", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: "4px" }}>
+                  <button type="button" onClick={skipTour} style={{ background: "none", border: "none", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: isMobile ? "10px 16px" : "4px" }}>
                     Skip
                   </button>
                 )}
@@ -286,7 +299,7 @@ export default function TourCard({ onFillInput }: TourCardProps) {
                     onClick={handlePrimaryClick}
                     disabled={isPerformingAction}
                     style={{
-                      padding: "8px 16px",
+                      padding: isMobile ? "12px 24px" : "8px 16px",
                       borderRadius: "8px",
                       border: "none",
                       background: isPerformingAction
@@ -331,7 +344,7 @@ export default function TourCard({ onFillInput }: TourCardProps) {
                 fontSize: "11px",
                 color: "rgba(255,255,255,0.25)",
                 cursor: "pointer",
-                padding: "4px",
+                padding: isMobile ? "10px" : "4px",
                 transition: "color 200ms ease",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}

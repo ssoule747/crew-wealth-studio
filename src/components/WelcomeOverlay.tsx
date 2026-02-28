@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const WELCOME_SEEN_KEY = "henry_welcome_seen";
 
@@ -12,6 +13,7 @@ interface WelcomeOverlayProps {
 }
 
 export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: WelcomeOverlayProps) {
+  const isMobile = useIsMobile();
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -74,9 +76,9 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
           {/* Content */}
           <div
             style={{
-              maxWidth: "520px",
+              maxWidth: isMobile ? "100%" : "520px",
               width: "100%",
-              padding: "0 24px",
+              padding: isMobile ? "0 16px" : "0 24px",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -99,8 +101,8 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: "120px",
-                  height: "120px",
+                  width: isMobile ? "90px" : "120px",
+                  height: isMobile ? "90px" : "120px",
                   borderRadius: "50%",
                   background: "radial-gradient(circle, rgba(201,169,110,0.25) 0%, transparent 70%)",
                   pointerEvents: "none",
@@ -109,13 +111,13 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
               <div
                 className="flex items-center justify-center rounded-xl font-serif"
                 style={{
-                  width: "56px",
-                  height: "56px",
+                  width: isMobile ? "44px" : "56px",
+                  height: isMobile ? "44px" : "56px",
                   background: "rgba(201,169,110,0.04)",
                   border: "1.5px solid rgba(201,169,110,0.2)",
                   backgroundImage: "linear-gradient(135deg, rgba(201,169,110,0.08) 0%, transparent 100%)",
                   color: "#C9A96E",
-                  fontSize: "24px",
+                  fontSize: isMobile ? "20px" : "24px",
                   position: "relative",
                 }}
               >
@@ -130,7 +132,7 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
               transition={{ duration: 0.4, delay: 0.5 }}
               className="font-serif"
               style={{
-                fontSize: "32px",
+                fontSize: isMobile ? "26px" : "32px",
                 color: "rgba(255,255,255,0.9)",
                 marginBottom: "8px",
                 lineHeight: "1.2",
@@ -172,11 +174,11 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.85 }}
               style={{
-                fontSize: "14px",
+                fontSize: isMobile ? "13px" : "14px",
                 color: "rgba(255,255,255,0.55)",
                 lineHeight: "1.8",
-                maxWidth: "420px",
-                marginBottom: "28px",
+                maxWidth: isMobile ? "340px" : "420px",
+                marginBottom: isMobile ? "24px" : "28px",
               }}
             >
               Henry helps wealth managers update client presentations in minutes
@@ -241,7 +243,8 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={{
-                padding: "14px 40px",
+                padding: isMobile ? "16px 40px" : "14px 40px",
+                minHeight: "48px",
                 borderRadius: "12px",
                 border: "none",
                 background: "linear-gradient(135deg, #C9A96E, #A8884A)",
@@ -291,7 +294,7 @@ export default function WelcomeOverlay({ onStartTour, onSkip, forceShow }: Welco
             transition={{ duration: 0.3, delay: 1.5 }}
             style={{
               position: "absolute",
-              bottom: "32px",
+              bottom: isMobile ? "calc(16px + env(safe-area-inset-bottom, 0px))" : "32px",
               left: "50%",
               transform: "translateX(-50%)",
             }}

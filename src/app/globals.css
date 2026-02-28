@@ -165,3 +165,56 @@ button:not(:disabled):hover {
   50% { opacity: 0.2; transform: scaleX(1); }
   100% { opacity: 0; transform: scaleX(1); }
 }
+
+/* ============================================
+   MOBILE-SPECIFIC STYLES (below md: 768px)
+   ============================================ */
+
+/* Stage container — edge-to-edge on mobile */
+@media (max-width: 767px) {
+  .stage-container {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* iOS safe area support */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (max-width: 767px) {
+    .mobile-safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+    .mobile-safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  /* Prevent rubber-band bounce */
+  html, body {
+    overscroll-behavior: none;
+  }
+
+  /* Smooth momentum scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Hide scrollbars on mobile */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    scrollbar-width: none;
+  }
+
+  /* Touch-friendly header buttons */
+  header button {
+    min-height: 44px !important;
+  }
+}

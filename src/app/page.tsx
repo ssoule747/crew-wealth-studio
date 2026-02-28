@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LeftPanel from "@/components/LeftPanel";
 import RightPanel from "@/components/RightPanel";
 import { useTour } from "@/components/TourProvider";
+import { useIsMobile } from "@/lib/useIsMobile";
 import TourCard, { TourProgressBar } from "@/components/TourCard";
 import WelcomeOverlay from "@/components/WelcomeOverlay";
 import Tooltip from "@/components/Tooltip";
@@ -55,6 +56,7 @@ export default function Home() {
   const rightPanelRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(0);
   const tour = useTour();
+  const isMobile = useIsMobile();
   const [tourInputText, setTourInputText] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -97,6 +99,17 @@ export default function Home() {
       setTimeout(() => tour.advanceStep(), 500);
     }
   }, [appState, tour]);
+
+  // Auto-switch mobile tab during tour
+  useEffect(() => {
+    if (!tour.isTourActive || !isMobile) return;
+    if (tour.currentStep >= 1 && tour.currentStep <= 4) {
+      setMobileTab("chat");
+    }
+    if (tour.currentStep === 5) {
+      setMobileTab("files");
+    }
+  }, [tour.currentStep, tour.isTourActive, isMobile]);
 
   // Handle "fill input" from tour
   const handleTourFillInput = useCallback((text: string) => {
@@ -189,6 +202,25 @@ export default function Home() {
   );
 
   const handleAcceptFile = useCallback((cardRect?: DOMRect) => {
+    // On mobile, skip flying card animation and auto-switch to Files tab
+    if (isMobile) {
+      setApprovedFile({
+        filename: "Henderson_Annual_Review_2026.key",
+        fileSize: "2.4 MB",
+        slides: DEMO_SLIDES,
+        timestamp: "Just now",
+      });
+      setAppState("accepted");
+      setMobileTab("files");
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { id: nextId(), role: "assistant", content: HENRY_ACCEPTED },
+        ]);
+      }, 500);
+      return;
+    }
+
     // Get the right panel's center position for the target
     const rightPanel = rightPanelRef.current;
     if (!rightPanel || !cardRect) {
@@ -244,7 +276,7 @@ export default function Home() {
         ]);
       }, 500);
     }, 700);
-  }, [nextId]);
+  }, [nextId, isMobile]);
 
   const handleSkipProcessing = useCallback(() => {
     skipProcessingRef.current = true;
@@ -401,7 +433,7 @@ export default function Home() {
 
       {/* Stage container */}
       <div
-        className="flex flex-col flex-1 min-h-0 overflow-hidden noise-overlay"
+        className="flex flex-col flex-1 min-h-0 overflow-hidden noise-overlay stage-container"
         style={{
           margin: "20px",
           background: "#131217",
@@ -433,7 +465,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setMobileTab("files")}
-            className="flex-1 flex items-center justify-center transition-colors duration-200"
+            className="flex-1 flex items-center justify-center gap-1.5 transition-colors duration-200"
             style={{
               fontSize: "12px",
               fontWeight: 600,
@@ -444,6 +476,14 @@ export default function Home() {
             }}
           >
             Files
+            {approvedFile && (
+              <span style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                background: "#C9A96E",
+              }} />
+            )}
           </button>
         </div>
 
