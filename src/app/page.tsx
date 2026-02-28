@@ -347,28 +347,25 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-          <Tooltip text="Restart guided tour" position="bottom">
-            <button
-              type="button"
-              onClick={handleRestartTour}
-              className="transition-all duration-200"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "14px",
-                cursor: "pointer",
-              }}
-            >
-              ↻
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={handleRestartTour}
+            className="flex items-center gap-1.5 transition-all duration-200"
+            style={{
+              fontSize: "11.5px",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.4)",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              padding: "6px 14px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              minHeight: "32px",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}>↻</span>
+            Restart Tour
+          </button>
           {appState !== "idle" && (
             <Tooltip text="Reset and start fresh with a new client deck" position="bottom">
               <button
