@@ -159,6 +159,24 @@ button:not(:disabled):hover {
   50% { box-shadow: 0 4px 20px rgba(201,169,110,0.08); }
 }
 
+/* Float animation for file icon */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Shimmer sweep for download button */
+@keyframes shimmer {
+  0% { left: -100%; }
+  50%, 100% { left: 200%; }
+}
+
+/* Fade + slide up for download area */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Flying card trail */
 @keyframes trail-fade {
   0% { opacity: 0.3; transform: scaleX(0); }

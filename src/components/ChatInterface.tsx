@@ -1,472 +1,368 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { ChatMessage } from "@/app/page";
-import type { AppState } from "@/lib/mockData";
-import { PROCESSING_STEPS, SLIDE_TYPE_COLORS } from "@/lib/mockData";
-import { useIsMobile } from "@/lib/useIsMobile";
+import { useState, useRef, useEffect, type ReactNode } from "react";
+import type {
+  ChatMessage,
+  SuggestedPrompt,
+  ConversationPhase,
+  TableData,
+} from "@/lib/useConversation";
+import { DEMO_FILES } from "@/lib/mockData";
+
+// ===============================================
+// PROPS
+// ===============================================
 
 interface ChatInterfaceProps {
-  appState: AppState;
   messages: ChatMessage[];
-  hasFiles: boolean;
+  isTyping: boolean;
+  typingProgress: number;
+  suggestedPrompts: SuggestedPrompt[];
+  onPromptClick: (promptId: string) => void;
   onSendMessage: (text: string) => void;
-  onAcceptFile: (cardRect?: DOMRect) => void;
-  onRequestChanges: () => void;
-  isTransferring?: boolean;
-  tourFillText?: string;
-  onTourFillConsumed?: () => void;
+  inputPlaceholder: string;
+  inputDisabled: boolean;
+  phase: ConversationPhase;
+  onSlideClick?: (slideId: number) => void;
+  onFileChipClick?: () => void;
 }
 
+// ===============================================
+// MESSAGE TABLE
+// ===============================================
+
+function MessageTable({ data }: { data: TableData }) {
+  return (
+    <div className="my-3 overflow-x-auto rounded-lg border border-white/[0.08] bg-[#111015]">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-white/[0.08] bg-[#5B9BAD]/[0.03]">
+            {data.headers.map((h, i) => (
+              <th
+                key={i}
+                className={`px-4 py-2.5 text-left text-xs font-medium text-[#5B9BAD] uppercase tracking-wider ${
+                  data.alignRight?.includes(i) ? "text-right" : ""
+                }`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.rows.map((row, ri) => (
+            <tr
+              key={ri}
+              className="border-b border-white/[0.04] last:border-0"
+            >
+              {row.map((cell, ci) => (
+                <td
+                  key={ci}
+                  className={`px-4 py-2.5 text-sm ${
+                    data.alignRight?.includes(ci)
+                      ? "text-right font-mono text-text-primary"
+                      : "text-text-secondary"
+                  }`}
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ===============================================
+// CONTENT PARSER
+// ===============================================
+
+function renderMessageContent(
+  content: string,
+  onSlideClick?: (id: number) => void
+): ReactNode {
+  const lines = content.split("\n");
+
+  return lines.map((line, i) => {
+    // Horizontal rule
+    if (line.trim() === "---") {
+      return <hr key={i} className="border-white/[0.08] my-3" />;
+    }
+
+    // Blank line
+    if (line.trim() === "") {
+      return <br key={i} />;
+    }
+
+    // Process inline formatting: bold + slide refs
+    const processed = processInline(line, onSlideClick);
+
+    // Bullet / emoji indentation
+    const trimmed = line.trimStart();
+    const isBullet =
+      trimmed.startsWith("\u2022") ||
+      trimmed.startsWith("\u2705") ||
+      trimmed.startsWith("\u26A0\uFE0F") ||
+      trimmed.startsWith("\u2713");
+    const isNumbered = /^\d+\./.test(trimmed);
+
+    return (
+      <div
+        key={i}
+        className={`${isBullet || isNumbered ? "pl-4" : ""} ${
+          line.startsWith("|") ? "font-mono text-xs" : ""
+        }`}
+      >
+        {processed}
+      </div>
+    );
+  });
+}
+
+/**
+ * Process a single line for **bold** and Slide N references.
+ * Returns an array of ReactNode fragments.
+ */
+function processInline(
+  text: string,
+  onSlideClick?: (id: number) => void
+): ReactNode[] {
+  // Split on bold markers first
+  const boldParts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return boldParts.map((part, j) => {
+    // Bold segment
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={j} className="text-[#C9A96E] font-semibold">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    // Within non-bold segments, look for Slide references
+    const slideRefParts = part.split(/(Slide \d+)/g);
+    return slideRefParts.map((sp, k) => {
+      const slideMatch = sp.match(/^Slide (\d+)$/);
+      if (slideMatch) {
+        const slideId = parseInt(slideMatch[1], 10);
+        return (
+          <button
+            key={`${j}-${k}`}
+            onClick={() => onSlideClick?.(slideId)}
+            className="text-[#5B9BAD] hover:text-[#7DC0D0] underline underline-offset-2 decoration-[#5B9BAD]/30 hover:decoration-[#5B9BAD]/60 transition-colors cursor-pointer"
+          >
+            Slide {slideId}
+          </button>
+        );
+      }
+      return <span key={`${j}-${k}`}>{sp}</span>;
+    });
+  });
+}
+
+// ===============================================
+// HENRY AVATAR
+// ===============================================
+
+function HenryAvatar() {
+  return (
+    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A96E]/20 to-[#8B7340]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+      <span className="text-[#C9A96E] text-xs font-serif font-bold">H</span>
+    </div>
+  );
+}
+
+// ===============================================
+// MAIN COMPONENT
+// ===============================================
+
 export default function ChatInterface({
-  appState,
   messages,
-  hasFiles,
+  isTyping,
+  typingProgress,
+  suggestedPrompts,
+  onPromptClick,
   onSendMessage,
-  onAcceptFile,
-  onRequestChanges,
-  isTransferring,
-  tourFillText,
-  onTourFillConsumed,
+  inputPlaceholder,
+  inputDisabled,
+  phase,
+  onSlideClick,
+  onFileChipClick,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isMobile = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom when messages change or typing state changes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const el = scrollRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
+  }, [messages, isTyping]);
 
-  // Tour auto-fill with typewriter effect
-  useEffect(() => {
-    if (!tourFillText) return;
-
-    setInput(""); // Clear first
-    let i = 0;
-    const text = tourFillText;
-    const interval = setInterval(() => {
-      i++;
-      setInput(text.slice(0, i));
-      if (i >= text.length) {
-        clearInterval(interval);
-        inputRef.current?.focus();
-        onTourFillConsumed?.();
-      }
-    }, 8); // ~8ms per char = ~800ms for 100 chars
-
-    return () => clearInterval(interval);
-  }, [tourFillText, onTourFillConsumed]);
-
-  // Determine placeholder text
-  const getPlaceholder = () => {
-    if (!hasFiles) return "Load demo files to get started...";
-    if (appState === "review") return "Request changes or ask Henry anything...";
-    return "Tell Henry what to update...";
-  };
-
-  // Determine if input is disabled
-  const isDisabled = !hasFiles || appState === "processing";
-
-  const handleSubmit = () => {
+  const handleSend = () => {
     const trimmed = input.trim();
-    if (!trimmed || isDisabled) return;
+    if (!trimmed) return;
     onSendMessage(trimmed);
     setInput("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages area */}
-      <div
-        className="flex-1 overflow-y-auto min-h-0"
-        style={{ padding: isMobile ? "16px 16px" : "20px 24px" }}
-      >
-        <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                marginBottom: "16px",
-                display: "flex",
-                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-              }}
-            >
-              <div
+    <>
+      {/* Inject fadeSlideUp keyframe */}
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      <div className="flex flex-col h-full">
+        {/* ---- Scrollable message area ---- */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
+          {/* File Chips */}
+          <div className="px-4 pt-4 pb-2">
+            <p className="text-xs text-text-muted mb-2">
+              Loaded files for Lucy C&apos;s annual review
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {DEMO_FILES.map((file) => (
+                <button
+                  type="button"
+                  key={file.name}
+                  onClick={() => onFileChipClick?.()}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs border cursor-pointer hover:brightness-125 transition-all ${
+                    file.ext === "key"
+                      ? "border-[#C9A96E]/30 text-[#C9A96E] bg-[#C9A96E]/5"
+                      : "border-[#5B9BAD]/30 text-[#5B9BAD] bg-[#5B9BAD]/5"
+                  }`}
+                >
+                  <span>{file.icon}</span>
+                  <span className="truncate max-w-[160px]">{file.name}</span>
+                  <span className="text-text-muted">{file.size}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Messages */}
+          {messages.map((msg) =>
+            msg.role === "assistant" ? (
+              <div key={msg.id} className="flex gap-3 px-4 py-3">
+                <HenryAvatar />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-text-primary leading-relaxed whitespace-pre-wrap">
+                    {renderMessageContent(msg.content, onSlideClick)}
+                  </div>
+                  {msg.isTable && msg.tableData && (
+                    <MessageTable data={msg.tableData} />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div key={msg.id} className="flex justify-end px-4 py-3">
+                <div className="bg-[#1a1a1f] rounded-2xl px-4 py-2.5 max-w-[80%] border border-white/[0.06]">
+                  <p className="text-sm text-text-primary">{msg.content}</p>
+                </div>
+              </div>
+            )
+          )}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex items-center gap-1 px-4 py-3">
+              <div className="flex items-center gap-1.5">
+                <HenryAvatar />
+                <div className="flex items-center gap-1 px-3 py-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C9A96E] animate-bounce [animation-delay:0ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C9A96E] animate-bounce [animation-delay:150ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C9A96E] animate-bounce [animation-delay:300ms]" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Progress Bar (loading phase) */}
+          {phase === "loading" && typingProgress > 0 && typingProgress < 100 && (
+            <div className="mx-4 my-2">
+              <div className="h-0.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#C9A96E] to-[#5B9BAD] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${typingProgress}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-text-muted mt-1.5">
+                Analyzing files...
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ---- Suggested Prompts ---- */}
+        {suggestedPrompts.length > 0 && (
+          <div className="px-4 pb-2 flex flex-wrap gap-2.5 md:flex-row flex-col">
+            {suggestedPrompts.map((prompt, i) => (
+              <button
+                key={prompt.id}
+                onClick={() => onPromptClick(prompt.id)}
+                className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  prompt.variant === "primary"
+                    ? "bg-gradient-to-r from-[#C9A96E] to-[#8B7340] text-white hover:brightness-110 hover:scale-[1.02]"
+                    : "border border-[#C9A96E]/40 text-[#C9A96E] hover:bg-[#C9A96E]/10"
+                }`}
                 style={{
-                  maxWidth: "85%",
-                  padding: msg.isProcessing ? "16px 20px" : "12px 16px",
-                  borderRadius: "12px",
-                  background: msg.role === "user"
-                    ? "rgba(201,169,110,0.1)"
-                    : "rgba(255,255,255,0.03)",
-                  border: msg.role === "user"
-                    ? "1px solid rgba(201,169,110,0.15)"
-                    : "1px solid rgba(255,255,255,0.05)",
-                  fontSize: "13px",
-                  lineHeight: "1.6",
-                  color: msg.role === "user"
-                    ? "rgba(255,255,255,0.85)"
-                    : "rgba(255,255,255,0.7)",
+                  animation: `fadeSlideUp 300ms ease ${600 + i * 100}ms both`,
+                  minHeight: "44px",
                 }}
               >
-                {msg.isProcessing ? (
-                  <ProcessingAnimation />
-                ) : (
-                  <>
-                    {/* Render message text with markdown-like bold support */}
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: msg.content
-                          .replace(/\*\*(.*?)\*\*/g, '<strong style="color: rgba(255,255,255,0.9); font-weight: 600;">$1</strong>')
-                          .replace(/\n/g, "<br />"),
-                      }}
-                    />
-
-                    {/* File Preview Card — inline in chat */}
-                    {msg.filePreview && (
-                      <FilePreviewCard
-                        filename={msg.filePreview.filename}
-                        fileSize={msg.filePreview.fileSize}
-                        slides={msg.filePreview.slides}
-                        onAccept={onAcceptFile}
-                        onRequestChanges={onRequestChanges}
-                        appState={appState}
-                        isTransferring={isTransferring}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input bar */}
-      <div style={{ padding: isMobile ? "8px 12px calc(12px + env(safe-area-inset-bottom, 0px))" : "12px 24px 20px" }}>
-        <div
-          className="flex items-center gap-2"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: `1px solid ${isDisabled ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.06)"}`,
-            borderRadius: "12px",
-            padding: "6px 6px 6px 16px",
-            opacity: isDisabled ? 0.5 : 1,
-            transition: "all 200ms ease",
-          }}
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={getPlaceholder()}
-            disabled={isDisabled}
-            style={{
-              flex: 1,
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              color: "rgba(255,255,255,0.8)",
-              fontSize: isMobile ? "16px" : "13px",
-              caretColor: "#C9A96E",
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isDisabled || !input.trim()}
-            style={{
-              padding: isMobile ? "10px 20px" : "8px 16px",
-              minHeight: "44px",
-              borderRadius: "8px",
-              border: "none",
-              background: !isDisabled && input.trim()
-                ? "linear-gradient(135deg, #C9A96E 0%, #8B7340 100%)"
-                : "rgba(255,255,255,0.04)",
-              color: !isDisabled && input.trim()
-                ? "#0C0B0F"
-                : "rgba(255,255,255,0.2)",
-              fontSize: "12px",
-              fontWeight: 600,
-              cursor: !isDisabled && input.trim() ? "pointer" : "not-allowed",
-              transition: "all 200ms ease",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ========== Processing Animation (in-chat) ==========
-
-function ProcessingAnimation() {
-  const [visibleSteps, setVisibleSteps] = useState(0);
-
-  useEffect(() => {
-    // Show steps one by one with delays: 0ms, 1000ms, 2000ms, 3500ms
-    const delays = [0, 1000, 1000, 1500];
-    let total = 0;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    delays.forEach((delay, i) => {
-      total += delay;
-      timers.push(
-        setTimeout(() => {
-          setVisibleSteps(i + 1);
-        }, total)
-      );
-    });
-
-    return () => timers.forEach(clearTimeout);
-  }, []);
-
-  return (
-    <div className="flex flex-col gap-2">
-      {visibleSteps === 0 && (
-        <div className="flex items-center gap-2">
-          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>Henry is thinking</span>
-          <TypingDots />
-        </div>
-      )}
-      {PROCESSING_STEPS.slice(0, visibleSteps).map((step, i) => (
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-          className="flex items-center gap-2"
-          style={{
-            fontSize: "12px",
-            color: i === visibleSteps - 1 ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.3)",
-          }}
-        >
-          {i < visibleSteps - 1 ? (
-            <span style={{ color: "#8BC96E" }}>✓</span>
-          ) : (
-            <motion.span
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              style={{ display: "inline-block", fontSize: "10px", color: "#C9A96E" }}
-            >
-              ◈
-            </motion.span>
-          )}
-          {step}
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-// ========== Typing Dots ==========
-
-function TypingDots() {
-  return (
-    <div className="flex items-center gap-1">
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={i}
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-          style={{
-            width: "4px",
-            height: "4px",
-            borderRadius: "50%",
-            background: "#C9A96E",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ========== File Preview Card (inline in chat) ==========
-
-interface FilePreviewCardProps {
-  filename: string;
-  fileSize: string;
-  slides: Array<{ id: number; title: string; type: string; changes: string[] }>;
-  onAccept: (cardRect?: DOMRect) => void;
-  onRequestChanges: () => void;
-  appState: AppState;
-  isTransferring?: boolean;
-}
-
-function FilePreviewCard({
-  filename,
-  fileSize,
-  slides,
-  onAccept,
-  onRequestChanges,
-  appState,
-  isTransferring,
-}: FilePreviewCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const showActions = appState === "review";
-  const isAccepted = appState === "accepted" || appState === "iterating" || isTransferring;
-
-  const handleAccept = () => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    onAccept(rect ?? undefined);
-  };
-
-  // If the file has been accepted (or is transferring), show a compact accepted state
-  if (isAccepted && !showActions) {
-    return (
-      <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 1 }}
-        style={{
-          marginTop: "16px",
-          padding: "12px 16px",
-          borderRadius: "12px",
-          background: "rgba(139,201,110,0.06)",
-          border: "1px solid rgba(139,201,110,0.12)",
-        }}
-      >
-        <div className="flex items-center gap-2" style={{ fontSize: "12px", color: "rgba(139,201,110,0.7)" }}>
-          <span>✓</span>
-          <span>✓ File accepted</span>
-        </div>
-      </motion.div>
-    );
-  }
-
-  // If currently transferring, hide the full card (it's being shown as the flying card overlay)
-  if (isTransferring) {
-    return (
-      <motion.div
-        animate={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        style={{ marginTop: "16px", height: 0, overflow: "hidden" }}
-      />
-    );
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.4, delay: 0.2 }}
-      style={{
-        marginTop: "16px",
-        background: "rgba(201,169,110,0.06)",
-        border: "1px solid rgba(201,169,110,0.15)",
-        borderRadius: "12px",
-        padding: "16px",
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      {/* Shimmer overlay on first appear */}
-      <motion.div
-        initial={{ x: "-100%" }}
-        animate={{ x: "200%" }}
-        transition={{ duration: 1.2, delay: 0.3 }}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.08) 50%, transparent 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* File header */}
-      <div className="flex items-center gap-3" style={{ marginBottom: "12px" }}>
-        <span style={{ fontSize: "16px", color: "#C9A96E" }}>◆</span>
-        <div className="flex-1 min-w-0">
-          <div style={{ fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{filename}</div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{fileSize}</div>
-        </div>
-      </div>
-
-      {/* Mini slide list — show first 5 */}
-      <div className="flex flex-col gap-1" style={{ marginBottom: showActions ? "14px" : "0" }}>
-        {slides.slice(0, 5).map((slide) => (
-          <div key={slide.id} className="flex items-center gap-2" style={{ fontSize: "11px" }}>
-            <div
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: SLIDE_TYPE_COLORS[slide.type as keyof typeof SLIDE_TYPE_COLORS] || "#C9A96E",
-                flexShrink: 0,
-              }}
-            />
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>{slide.title}</span>
+                {prompt.label}
+              </button>
+            ))}
           </div>
-        ))}
-        {slides.length > 5 && (
-          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", paddingLeft: "14px" }}>
-            +{slides.length - 5} more slides
-          </span>
         )}
-      </div>
 
-      {/* Action buttons — updated Accept handler */}
-      {showActions && (
-        <div className="flex flex-col md:flex-row gap-2">
-          <button
-            type="button"
-            onClick={handleAccept}
-            className="flex-1 flex items-center justify-center gap-2 transition-all duration-200"
-            style={{
-              padding: "10px 16px",
-              borderRadius: "8px",
-              border: "none",
-              background: "linear-gradient(135deg, #C9A96E 0%, #8B7340 100%)",
-              color: "#0C0B0F",
-              fontSize: "12px",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            ✓ Accept & Download
-          </button>
-          <button
-            type="button"
-            onClick={onRequestChanges}
-            className="flex-1 flex items-center justify-center gap-2 transition-all duration-200"
-            style={{
-              padding: "10px 16px",
-              borderRadius: "8px",
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(255,255,255,0.03)",
-              color: "rgba(255,255,255,0.5)",
-              fontSize: "12px",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            ✎ Request Changes
-          </button>
+        {/* ---- Input Bar ---- */}
+        <div className="px-4 py-3 border-t border-white/[0.06] flex-shrink-0">
+          <div className="flex items-center gap-2 bg-[#141318] rounded-xl px-4 py-2.5 border border-white/[0.06] focus-within:border-[#C9A96E]/30 transition-colors">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && input.trim()) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={inputPlaceholder}
+              disabled={inputDisabled}
+              className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none disabled:opacity-40 min-h-[24px]"
+              style={{ fontSize: "16px" }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={inputDisabled || !input.trim()}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-20 bg-gradient-to-br from-[#C9A96E] to-[#8B7340] hover:brightness-110"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
+              </svg>
+            </button>
+          </div>
         </div>
-      )}
-    </motion.div>
+      </div>
+    </>
   );
 }

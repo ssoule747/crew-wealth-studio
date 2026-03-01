@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Serif_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
-import TourProvider from "@/components/TourProvider";
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: "400",
@@ -53,9 +52,7 @@ export default function RootLayout({
               "radial-gradient(ellipse 60% 50% at 10% 10%, rgba(201,169,110,0.04) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 90% 90%, rgba(110,170,201,0.03) 0%, transparent 60%)",
           }}
         />
-        <TourProvider>
-          <div className="relative">{children}</div>
-        </TourProvider>
+        <div className="relative">{children}</div>
       </body>
     </html>
   );

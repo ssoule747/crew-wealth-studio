@@ -46,24 +46,29 @@ export type AppState =
 // --- Demo Files ---
 
 export const DEMO_FILES: DemoFile[] = [
-  { name: "Henderson_Annual_Review_2025.key", ext: "key", icon: "◆", color: "#C9A96E", size: "8.2 MB" },
-  { name: "Henderson_Portfolio_Q4.pdf", ext: "pdf", icon: "▣", color: "#C96E6E", size: "1.4 MB" },
-  { name: "Henderson_Tax_Summary.csv", ext: "csv", icon: "▤", color: "#6EAAC9", size: "248 KB" },
+  { name: "Lucy_C_Annual_Review.key", ext: "key", icon: "◆", color: "#C9A96E", size: "4.2 MB" },
+  { name: "Lucy_TOD_Account_3333.pdf", ext: "pdf", icon: "▣", color: "#5B9BAD", size: "892 KB" },
+  { name: "Lucy_Roth_IRA_1122.pdf", ext: "pdf", icon: "▣", color: "#5B9BAD", size: "756 KB" },
+  { name: "Lucy_Traditional_IRA_1234.pdf", ext: "pdf", icon: "▣", color: "#5B9BAD", size: "714 KB" },
+  { name: "Lucy_Beneficiary_IRA_2222.pdf", ext: "pdf", icon: "▣", color: "#5B9BAD", size: "901 KB" },
 ];
 
 // --- Henry's Messages ---
 
-export const HENRY_GREETING =
-  "Hello! I'm Henry, your presentation assistant. Load some files and tell me what you'd like to change — or click 'Load Demo Files' to try me out.";
+export const HENRY_GREETING = `Good morning. I'm **Henry**, your AI presentation assistant.
+
+I've been configured for **Crew Wealth Management** and I'm ready to help with **Lucy C's** annual review presentation.
+
+Load the demo files to get started — I'll analyze Lucy's Keynote deck alongside her LPL Financial account statements and update everything automatically.`;
 
 export const HENRY_FILES_LOADED =
-  "I see you've loaded the Henderson files — a 2025 Keynote presentation, their Q4 portfolio statement, and tax summary. What would you like me to update?";
+  "I see you've loaded Lucy's files — her Keynote presentation and all four LPL Financial account statements. I'll cross-reference everything and update the deck automatically.";
 
 export const PROCESSING_STEPS = [
-  "📄 Reading through the Keynote...",
-  "📊 Analyzing the financial data...",
-  "✏️ Writing updated content...",
-  "✅ Finalizing changes...",
+  "Reading Lucy_C_Annual_Review.key\u2026",
+  "Cross-referencing 4 LPL account statements\u2026",
+  "Updating 8 slides with current financial data\u2026",
+  "Formatting presentation for review\u2026",
 ];
 
 export const HENRY_ACCEPTED =
@@ -72,86 +77,54 @@ export const HENRY_ACCEPTED =
 // --- Demo Slide Previews ---
 
 export const DEMO_SLIDES: SlidePreview[] = [
-  {
-    id: 1,
-    title: "Annual Financial Review 2026",
-    type: "cover",
-    changes: ["Updated year from 2025 → 2026", "Updated client name styling"],
-  },
-  {
-    id: 2,
-    title: "Portfolio Overview",
-    type: "data",
-    changes: [
-      "Total assets updated from $4.2M to $4.8M",
-      "Growth rate updated from 12.3% to 14.1%",
-    ],
-  },
-  {
-    id: 3,
-    title: "Asset Allocation",
-    type: "chart",
-    changes: [
-      "Adjusted allocation: Equities 55%, Fixed Income 28%, Alternatives 17%",
-      "Updated donut chart values",
-    ],
-  },
-  {
-    id: 4,
-    title: "Performance Summary",
-    type: "data",
-    changes: [
-      "YTD return updated to 16.2% vs 13.8% benchmark",
-      "Added 3-year trailing performance",
-    ],
-  },
-  {
-    id: 5,
-    title: "Market Commentary",
-    type: "text",
-    changes: [
-      "Complete rewrite for 2025 review",
-      "Added current economic outlook",
-      "Referenced Fed rate trajectory",
-    ],
-  },
-  {
-    id: 6,
-    title: "Tax Planning",
-    type: "data",
-    changes: [
-      "Updated liability to $142,800",
-      "Flagged Roth conversion opportunity from CSV",
-      "Added estimated $18,400 savings over 5 years",
-    ],
-  },
-  {
-    id: 7,
-    title: "Investment Strategy",
-    type: "text",
-    changes: [
-      "Forward-looking for 2027",
-      "Added international markets tilt recommendation",
-    ],
-  },
-  {
-    id: 8,
-    title: "Next Steps & Timeline",
-    type: "text",
-    changes: [
-      "Updated scheduling to March 2027",
-      "Added action items from Q4 review",
-    ],
-  },
+  { id: 1, title: "Work Area", type: "text", changes: ["Internal workspace — no changes needed"] },
+  { id: 2, title: "Welcome Lucy", type: "cover", changes: ["Updated review date to February 26, 2026", "Confirmed client name and advisor"] },
+  { id: 3, title: "Financial Position Overview", type: "chart", changes: ["Pyramid overview — no data changes needed"] },
+  { id: 4, title: "Cash Reserve", type: "data", changes: ["Updated total cash reserves to $43,999", "Cash reserve goal remains $40,000 — on target", "Updated deposit account balances across all 4 accounts"] },
+  { id: 5, title: "Protection Planning", type: "text", changes: ["LTC policy confirmed: Mutual of Omaha $10K/mo benefit", "Annual premium $17,743 — no changes", "Umbrella policy $1M confirmed for 2025"] },
+  { id: 6, title: "Taxable Account (TOD)", type: "data", changes: ["Account value updated to $242,877 (acct ending 3333)", "Total return 29.88% since inception", "Income generated: $93,599", "Distribution: $6,000/month ongoing", "Allocation: 41% US Stocks, 36% Bonds, 17% Intl"] },
+  { id: 7, title: "Retirement Accounts", type: "data", changes: ["Roth IRA updated to $1,093,094 — 51.41% total return", "Traditional IRA updated to $34,260 — 15.67% return", "Beneficiary IRA updated to $913,484 — 33.76% return", "Combined retirement assets: $2,040,838", "Top holdings: NVDA $204K, PLTR $152K, BRK/B $147K"] },
+  { id: 8, title: "Estate Planning", type: "text", changes: ["Will/Trust redone 2025 with Laura Hoffman", "Both homes now held in trust", "No updates needed this review"] },
+  { id: 9, title: "Goals & Priorities", type: "text", changes: ["2026 goals added: Dominica dive trip", "Hawaii trip with mother", "RV trips and small home projects", "Rolled forward target years"] },
+  { id: 10, title: "LIFE Stages Overview", type: "chart", changes: ["Updated all account values across life stages", "Total portfolio: $2,283,715", "Tax-free assets (Roth): $1,093,094 — 47.9% of portfolio"] },
+  { id: 11, title: "Financial Ratios", type: "data", changes: ["Withdrawal ratio recalculated: 37%", "Social Security: $2,928 NET monthly", "Rental income: $3,000/month from 3 properties", "Mortgage: $598K @6.88%"] },
+  { id: 12, title: "Action Items", type: "text", changes: ["Rolled forward all action items to 2026", "Updated account references with current values", "Flagged Roth concentration risk (NVDA 17.9%, PLTR 13.9%)", "Review TOD distribution sustainability"] },
+  { id: 13, title: "Closing", type: "text", changes: ["No changes — closing slide"] },
 ];
+
+// --- Demo Output Constants ---
+
+export const DEMO_FILENAME = "Lucy_C_Annual_Review_Updated.key";
+export const DEMO_FILESIZE = "4.8 MB";
+
+export const HENRY_RESPONSE = `I've finished analyzing Lucy C's annual review presentation and cross-referenced it with all four LPL Financial account statements.
+
+Here's what I updated across **8 of 13 slides**:
+
+**Portfolio & Accounts**
+• Total portfolio value: **$2,283,715** across 4 accounts
+• Roth IRA leads at **$1,093,094** with 51.41% total return
+• Beneficiary IRA: **$913,484** with $97,561 in income generated
+• TOD account: **$242,877** distributing $6,000/month
+• Traditional IRA: **$34,260** (newest account, 15.67% return)
+
+**Key Insights Flagged**
+• Roth concentration risk — NVDA (17.9%) and PLTR (13.9%) are large single positions
+• Tax-free assets represent **47.9%** of total portfolio — strong positioning
+• Cash reserves at **$43,999** — exceeds $40,000 goal ✓
+• TOD distribution sustainability should be reviewed given declining balance
+
+**Slides Updated:** Welcome, Cash Reserve, Taxable, Retirement, Goals, LIFE Stages, Ratios, Action Items
+
+Review the updated presentation below, or ask me to adjust anything specific.`;
 
 // --- Demo Responses (pattern matching) ---
 
 export const DEMO_PRIMARY_RESPONSE: DemoResponse = {
-  text: "I've gone through the Henderson deck and cross-referenced it with their Q4 portfolio statement and tax summary. Here's what I updated:\n\n- **Cover slide** — Updated year from 2025 → 2026\n- **Portfolio Overview** — Total assets updated from $4.2M to $4.8M, growth rate from 12.3% to 14.1%\n- **Asset Allocation** — Adjusted to reflect new strategy: Equities 55%, Fixed Income 28%, Alternatives 17%\n- **Performance** — YTD return updated to 16.2% vs 13.8% benchmark\n- **Market Commentary** — Rewrote for 2025 review with current economic outlook\n- **Tax Planning** — Updated liability to $142,800 and flagged a Roth conversion opportunity I found in the tax summary\n- **Strategy** — Forward-looking for 2027 with international markets tilt\n- **Next Steps** — Updated scheduling to March 2027\n\nTake a look and let me know if you'd like any adjustments.",
+  text: HENRY_RESPONSE,
   slides: DEMO_SLIDES,
-  filename: "Henderson_Annual_Review_2026.key",
-  fileSize: "2.4 MB",
+  filename: DEMO_FILENAME,
+  fileSize: DEMO_FILESIZE,
 };
 
 export interface FollowUpResponse {
@@ -175,7 +148,7 @@ export const DEMO_FOLLOWUPS: FollowUpResponse[] = [
 ];
 
 export const DEMO_FALLBACK_RESPONSE =
-  "Got it — I've made those adjustments to the Henderson deck. Here's the updated version for your review.";
+  "Got it — I've made those adjustments to Lucy's deck. Here's the updated version for your review.";
 
 // Helper function to find matching response
 export function findDemoResponse(userMessage: string): string {
@@ -211,7 +184,7 @@ export const ORIGINAL_SLIDES: MockSlide[] = [
     id: 1,
     number: "01",
     title: "Annual Financial Review 2025",
-    content: "Prepared for Henderson Family Trust — Crew Wealth Management",
+    content: "Prepared for Lucy C — Crew Wealth Management",
     type: "cover",
     accentColor: SLIDE_TYPE_COLORS.cover,
   },
@@ -282,7 +255,7 @@ export const UPDATED_SLIDES: UpdatedSlide[] = [
     id: 1,
     number: "01",
     title: "Annual Financial Review 2026",
-    content: "Prepared for Henderson Family Trust — Crew Wealth Management",
+    content: "Prepared for Lucy C — Crew Wealth Management",
     type: "cover",
     accentColor: SLIDE_TYPE_COLORS.cover,
     status: "updated",
