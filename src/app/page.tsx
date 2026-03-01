@@ -8,6 +8,7 @@ import ChatInterface from "@/components/ChatInterface";
 import WaitingFolder from "@/components/WaitingFolder";
 import FileTransfer from "@/components/FileTransfer";
 import DemoModal from "@/components/DemoModal";
+import WelcomeOverlay from "@/components/WelcomeOverlay";
 
 export default function Home() {
   const conversation = useConversation();
@@ -18,14 +19,9 @@ export default function Home() {
   const [showFileTransfer, setShowFileTransfer] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const folderRef = useRef<HTMLDivElement>(null);
   const transferStartRef = useRef<HTMLDivElement>(null);
-
-  // Auto-start conversation on mount
-  useEffect(() => {
-    conversation.startConversation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Trigger file transfer when animation phase changes to "transferring"
   useEffect(() => {
@@ -65,9 +61,8 @@ export default function Home() {
               setShowFileTransfer(false);
               setDownloaded(false);
               setShowDemoModal(false);
+              setShowWelcome(true);
               setMobileTab("chat");
-              // Re-start after a tick so reset completes
-              setTimeout(() => conversation.startConversation(), 100);
             }}
             className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted border border-white/[0.08] hover:border-[#C9A96E]/30 hover:text-[#C9A96E] transition-all"
           >
@@ -209,6 +204,16 @@ export default function Home() {
 
       {/* Demo Modal */}
       <DemoModal open={showDemoModal} onClose={() => setShowDemoModal(false)} />
+
+      {/* Welcome Overlay */}
+      {showWelcome && (
+        <WelcomeOverlay
+          onStart={() => {
+            setShowWelcome(false);
+            conversation.startConversation();
+          }}
+        />
+      )}
 
       {/* ── FOOTER ── 32px */}
       <footer className="h-8 flex items-center justify-center flex-shrink-0 border-t border-white/[0.04]">
